@@ -1,5 +1,6 @@
 Db = require 'db'
 Http = require 'http'
+Event = require 'event'
 
 exports.onHttp = (request) !->
 	if !request.data?
@@ -44,6 +45,11 @@ exports.onHttp = (request) !->
 			# Set commit data
 			Db.shared.set 'commits', commitMaxId, commitData
 			log 'Commit: '+commitData.message
+
+			# Send notification
+			Event.create
+				unit: 'commit'
+				text: 'Commit: '+general.repositoryName+': '+commit.message
 
 
 applyKeysToObject = (source, target) !->
