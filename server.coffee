@@ -15,7 +15,6 @@ exports.onHttp = (request) !->
 		log 'no changes listed in the data'
 		return
 
-	Db.shared.set 'event', parsed
 	general = {}
 	general.byName = parsed.actor?.display_name
 	general.byUsername = parsed.actor?.username
