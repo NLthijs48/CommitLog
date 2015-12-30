@@ -1,3 +1,4 @@
-name: Example
-description: An example plugin. Use this as the base for your own glorious plugins!
-api: 2
+name: CommitLog
+description: Track commits from BitBucket repositories
+api: 3
+icon: reorder
