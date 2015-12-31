@@ -75,6 +75,7 @@ exports.render = !->
 							Dom.style
 								marginLeft: '5px'
 								paddingBottom: '7px'
+								Flex: true
 							Dom.userText commit.get('message')
 		, (commit) ->
 			-(Date.parse(commit.get('date')))
