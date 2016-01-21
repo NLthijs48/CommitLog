@@ -9,13 +9,20 @@ Ui = require 'ui'
 Time = require 'time'
 
 exports.render = !->
+	filterO = Obs.create {}
 	Dom.style
 		background: '#eee'
 
-	Dom.h1 'Latest commits'
+	Obs.observe !->
+		text = 'Latest commits'
+		if (repo = filterO.get('repository'))
+			text += ' on '+repo
+		if (user = filterO.get('user'))
+			text += ' by '+user
+		Dom.h1 text
 	Dom.div !->
 		Dom.style
-			margin: '10px 0 50px 0'
+			padding: '0 0 50px 0'
 		count = 0
 		Db.shared.iterate 'commits', (commit) !->
 			count++
@@ -50,27 +57,44 @@ exports.render = !->
 								fontSize: '115%'
 								#color: '#00AA00'
 								fontWeight: 'bold'
-							Dom.text commit.get('repositoryName')
+							Dom.div !->
+								Dom.style
+									display: 'inline-block'
+									margin: '-5px'
+									padding: '5px'
+								Dom.text commit.get('repositoryName')
+								Dom.onTap !->
+									filterO.set 'repository', commit.get('repositoryName')
 						Dom.div !->
 							Dom.style
 								fontSize: '12px'
-								marginTop: '4px'
+								margin: '-5px'
+								padding: '9px 5px'
 							parsedDate = Date.parse(commit.get('date'))
 							Time.deltaText parsedDate/1000
-							log 'parsedDate', parsedDate
 							Dom.onTap !->
 								Modal.show !->
-									Dom.style _userSelect: 'text'
-									Dom.text 'Committed at '+(new Date(parsedDate).toUTCString())
-									Dom.br()
-									Dom.text 'Hash: '+commit.get('hash')
+									Dom.div !->
+										Dom.userText '**Committed:** '
+										Dom.br()
+										Dom.text new Date(parsedDate).toUTCString()
+										Dom.br()
+										Dom.userText '**Hash:** '
+										Dom.br()
+										Dom.text commit.get('hash')
 					Dom.div !->
 						Dom.style
 							Box: 'horizontal'
-							marginTop: '5px'
+							margin: '5px 0 0 0'
 							fontSize: '15px'
 						Dom.div !->
-							Dom.userText '**'+commit.get('byUsername')+':**'
+							Dom.div !->
+								Dom.style
+									margin: '-5px -5px 0 -5px'
+									padding: '5px'
+								Dom.userText '**'+commit.get('byUsername')+':**'
+								Dom.onTap !->
+									filterO.set 'user', commit.get('byUsername')
 						Dom.div !->
 							Dom.style
 								marginLeft: '5px'
@@ -78,10 +102,37 @@ exports.render = !->
 								Flex: true
 							Dom.userText commit.get('message')
 		, (commit) ->
+			if (repo = filterO.get('repository'))? and commit.get('repositoryName') isnt repo
+				return
+			if (user = filterO.get('user'))? and commit.get('byUsername') isnt user
+				return
 			-(Date.parse(commit.get('date')))
 
 		if count is 0
 			Ui.emptyText 'No commits yet, program something!'
+
+		Obs.observe !->
+			footer = []
+			if (repo = filterO.get('repository'))?
+				footer.push
+					label: !->
+						Dom.text 'Clear repository filter:'
+						Dom.div !->
+							Dom.style textTransform: 'none'
+							Dom.text repo
+					action: !->
+						filterO.remove 'repository'
+			if (user = filterO.get('user'))?
+				footer.push
+					label: !->
+						Dom.text 'Clear user filter:'
+						Dom.div !->
+							Dom.style textTransform: 'none'
+							Dom.text user
+					action: !->
+						filterO.remove 'user'
+			if footer.length > 0
+				Page.setFooter footer
 
 exports.renderSettings = !->
 	if !Db.shared
