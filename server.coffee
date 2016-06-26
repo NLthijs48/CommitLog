@@ -1,7 +1,3 @@
-Db = require 'db'
-Http = require 'http'
-Event = require 'event'
-
 exports.onHttp = (request) !->
 	if !request.data?
 		log 'HTTP: no data'

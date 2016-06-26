@@ -1,34 +1,28 @@
 #!/bin/sh
 
-# see if we can use zip
-if ! hash zip 2>/dev/null; then
-	echo "This script requires the 'zip' command in your path. Hint: apt-get install zip" >&2
+if ! (hash tar curl || hash tar wget) 2>/dev/null; then
+	echo "This script requires 'tar' and either 'curl' or 'wget' on your system." >&2
 	exit 1
 fi
 
-cd "`dirname $0`"
-
-url="https://happening.im/plugin/${1-$(cat .deploykey)}"
+url="https://happening.im/plugin/${1-$(cat .deploykey 2>/dev/null)}"
 if [ $? -ne 0 ]; then
 	echo "Either supply a deploy key as first argument or populate .deploykey"
 	exit 1
 fi
 
-tmp=.upload.zip
-rm -f $tmp
-zip -qr $tmp * -x@.deployignore
+cd "`dirname $0`"
 
-# see if we can use curl, otherwise try wget, else fail
-if hash curl 2> /dev/null; then
-	curl --data-binary @$tmp ${url}
-elif hash wget 2> /dev/null; then
-	wget --content-on-error --post-file=$tmp ${url} -O - -q
+tmp=.upload.tar.gz
+rm --force $tmp
+tar --create --gzip --file $tmp --exclude-from .deployignore *
+	# .* is not included
+
+if hash curl 2>/dev/null; then
+	curl --data-binary @$tmp $url
 else
-	echo "This script requires either 'curl' or 'wget' in your path. Hint: apt-get install curl" >&2
-	rm -f $tmp
-	exit 1
+	wget --content-on-error --post-file=$tmp $url --output-document=- --quiet
 fi
 
-# remove the temporary zip file
-rm -f $tmp
+rm $tmp
 
