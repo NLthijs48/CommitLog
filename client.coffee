@@ -117,8 +117,6 @@ exports.render = !->
 									paddingBottom: '7px'
 									Flex: true
 								Dom.userText commit.get('message')
-			, (commit) ->
-				-(Date.parse(commit.get('date')))
 
 		Obs.observe !->
 			return if firstV.get() is -1
