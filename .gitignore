@@ -5,4 +5,4 @@
 *.orig
 .*.sw?
 .deploykey
-
+.idea

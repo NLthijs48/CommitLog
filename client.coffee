@@ -50,8 +50,15 @@ exports.render = !->
 						margin: '0 0 10px 0'
 						padding: '0 10px 0 0'
 					Dom.div !->
+						avatarSize = 120
+						avatar = commit.get 'avatar'
+						if avatar
+							if avatar.indexOf('?') isnt -1
+								avatar += "&s="+avatarSize
+							else
+								avatar += "?s="+avatarSize
 						Dom.style
-							background: 'url("'+commit.get('avatar')+'")'
+							background: 'url("'+avatar+'")'
 							backgroundSize: 'contain'
 							backgroundRepeat: 'no-repeat'
 							backgroundPosition: 'center center'
@@ -182,4 +189,4 @@ exports.renderSettings = !->
 		Dom.style
 			fontSize: '14px'
 			marginTop: '2px'
-		Dom.text 'Add this url as webhook in BitBucket'
+		Dom.text 'Add this url as webhook in BitBucket or GitHub'
