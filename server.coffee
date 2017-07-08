@@ -12,10 +12,6 @@ exports.onHttp = (request) !->
 
 	if parsed.push?.changes?
 		general = {}
-		general.byName = parsed.actor?.display_name
-		general.byUsername = parsed.actor?.username
-		general.byUUID = parsed.actor?.uuid
-		general.avatar = parsed.actor?.links?.avatar?.href
 		general.repositoryName = parsed.repository?.name
 		general.repositoryFullName = parsed.repository?.full_name
 		general.received = new Date()/1000
@@ -26,8 +22,19 @@ exports.onHttp = (request) !->
 				log 'no commits in change'
 				continue
 
-			for commit in change.commits
+			if change.new?.type is "branch" and change.new?.name isnt "master"
+				log 'not on master branch'
+				return
+
+			# If the push had more than 5 commits truncated will be true and only the last 5 commits are in here
+			# First commit is newest and we want the oldest commit to have the lowest id, so reverse
+			for commit in change.commits.reverse()
 				commitData = {}
+				user = commit.author?.user
+				commitData.byName = user?.display_name
+				commitData.byUsername = user?.username
+				commitData.byUUID = user?.uuid
+				commitData.avatar = user?.links?.avatar?.href
 				commitData.message = commit.message
 				commitData.date = commit.date
 				commitData.hash = commit.hash
